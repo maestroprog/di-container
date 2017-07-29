@@ -1,0 +1,23 @@
+{
+  "name": "Qwerty/Container",
+  "type": "library",
+  "description": "A simple realisation of dependency injection container.",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Ruslan Yarullin",
+      "email": "maestroprog@gmail.com",
+      "homepage": "http://yr0.ru",
+      "role": "Developer"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Qwerty\\Container\\": "src"
+    }
+  },
+  "require": {
+    "php": ">=7.0.0",
+    "psr/container": "^1.0"
+  }
+}
