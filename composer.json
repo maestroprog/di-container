@@ -1,5 +1,5 @@
 {
-  "name": "Qwerty/Container",
+  "name": "qwerty/container",
   "type": "library",
   "description": "A simple realisation of dependency injection container.",
   "license": "MIT",
