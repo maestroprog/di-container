@@ -31,7 +31,7 @@ PHP;
             $name = str_replace('\\', '', $id);
             $class .= <<<PHP
 
-    public function get{$id}(): {$id}
+    public function get{$name}(): {$id}
     {
         // return \$this->get('$id');
     }

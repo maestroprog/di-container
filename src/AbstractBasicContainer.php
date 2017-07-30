@@ -31,7 +31,7 @@ abstract class AbstractBasicContainer implements IterableContainerInterface
             foreach ($reflect->getMethods() as $method) {
                 $methodName = $method->getName();
                 if (substr($methodName, 0, 3) === 'get' && strlen($methodName) > 3) {
-                    $this->list[] = (string)$method->getReturnType();
+                    $this->list[] = substr($methodName, 3);
                 }
             }
         }

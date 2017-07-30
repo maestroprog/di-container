@@ -35,7 +35,12 @@ class ContainerTest extends TestCase
 
 class MyService1
 {
+    private $on;
 
+    public function __construct(bool $on = true)
+    {
+        $this->on = $on;
+    }
 }
 
 class MyService2

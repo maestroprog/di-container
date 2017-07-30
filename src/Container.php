@@ -8,6 +8,8 @@ use Psr\Container\ContainerInterface;
 
 class Container implements IterableContainerInterface
 {
+    private static $instance;
+
     /**
      * @var ContainerInterface[]
      */
@@ -34,7 +36,7 @@ class Container implements IterableContainerInterface
      */
     public static function instance(): Container
     {
-        return new static();
+        return self::$instance ?? self::$instance = new static();
     }
 
     public static function boot()
@@ -56,8 +58,10 @@ class Container implements IterableContainerInterface
         $intersect = array_intersect_key($this->map, $ids);
         // todo intersect
         $diff = array_diff_key($ids, $this->map);
-        $combined = array_combine(array_flip($diff), array_fill(0, count($ids), $id));
-        $this->map = array_merge($this->map, $combined);
+        if ($diff) {
+            $combined = array_combine(array_flip($diff), array_fill(0, count($diff), $id));
+            $this->map = array_merge($this->map, $combined);
+        }
 
         $this->containers[$id++] = $container;
         $this->ids = array_merge($this->ids, array_flip($diff));
