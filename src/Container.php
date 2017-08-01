@@ -14,13 +14,13 @@ class Container implements IterableContainerInterface
      * @var ContainerInterface[]
      */
     private $containers;
-    private $ids;
+    private $ids = [];
+    private $types = [];
     private $map = [];
     private $instances = [];
 
     private function __construct()
     {
-        $this->ids = [];
     }
 
     public function __call($name, $arguments)
@@ -54,17 +54,21 @@ class Container implements IterableContainerInterface
     {
         static $id = 0;
 
-        $ids = array_flip($container->list());
-        $intersect = array_intersect_key($this->map, $ids);
+        $list = $container->list();
+        $intersect = array_intersect_key(array_flip($this->ids), $list);
+
         // todo intersect
-        $diff = array_diff_key($ids, $this->map);
+        $diff = array_diff_assoc($list, $this->map);
         if ($diff) {
-            $combined = array_combine(array_flip($diff), array_fill(0, count($diff), $id));
+            $combined = $diff;
             $this->map = array_merge($this->map, $combined);
         }
+        var_dump($this->map);
 
         $this->containers[$id++] = $container;
-        $this->ids = array_merge($this->ids, array_flip($diff));
+
+        $this->ids = array_merge($this->ids, array_keys($list));
+
     }
 
     /**

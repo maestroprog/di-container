@@ -4,5 +4,5 @@ namespace Qwerty\Container;
 
 interface HasPriorityInterface
 {
-    public function getPriority(): int;
+    public function priority(): int;
 }

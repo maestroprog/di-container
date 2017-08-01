@@ -33,7 +33,6 @@ final class FileCache implements CacheInterface
 
     private function write()
     {
-        var_dump($this->file);
         file_put_contents($this->file, serialize($this->memory));
     }
 }

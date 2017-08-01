@@ -11,16 +11,19 @@ require_once 'CacheInterface.php';
 require_once 'FileCache.php';
 require_once 'InMemoryCache.php';
 require_once 'SampleContainer.php';
+require_once 'SampleOverrideContainer.php';
 require_once 'SampleService.php';
 
 $container = Container::instance();
 $container->register(new SampleContainer());
+$container->register(new SampleOverrideContainer());
 
 $compiler = new ContainerCompiler($container);
 $compiler->compile(__DIR__ . '/container.php');
 
 /** @var SampleService $service */
 $service = $container->get(SampleService::class);
+
 var_dump($service->getSample1());
 
 var_dump($container->getSampleService()->getSample1());

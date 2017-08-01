@@ -14,6 +14,9 @@ abstract class AbstractBasicContainer implements IterableContainerInterface
             return $this->instances[$id];
         }
         $method = 'get' . $id;
+        if (!method_exists($this, $method)) {
+            throw new \LogicException('Cannot call unknown method "' . $method . ' to get service "' . $id . '".');
+        }
         return $this->instances[$id] = $this->{$method}();
     }
 
@@ -22,7 +25,7 @@ abstract class AbstractBasicContainer implements IterableContainerInterface
         return in_array($id, $this->list, true);
     }
 
-    public function list(): array
+    final public function list(): array
     {
         if (null === $this->list) {
             $this->list = [];
@@ -31,7 +34,7 @@ abstract class AbstractBasicContainer implements IterableContainerInterface
             foreach ($reflect->getMethods() as $method) {
                 $methodName = $method->getName();
                 if (substr($methodName, 0, 3) === 'get' && strlen($methodName) > 3) {
-                    $this->list[] = substr($methodName, 3);
+                    $this->list[substr($methodName, 3)] = (string)$method->getReturnType();
                 }
             }
         }
