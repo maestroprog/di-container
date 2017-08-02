@@ -14,10 +14,11 @@ class Container implements IterableContainerInterface
      * @var ContainerInterface[]
      */
     private $containers;
+    private $instances = [];
     private $ids = [];
     private $types = [];
     private $map = [];
-    private $instances = [];
+    private $priorites = [];
 
     private function __construct()
     {
@@ -54,21 +55,47 @@ class Container implements IterableContainerInterface
     {
         static $id = 0;
 
+        $this->containers[++$id] = $container;
+
+        $priority = 0;
+        if ($container instanceof HasPriorityInterface) {
+            $priority = $container->priority();
+        }
+        $this->priorites[$id] = $priority;
+
+        $this->loadServices($id, $container);
+    }
+
+    protected function loadServices(int $containerId, IterableContainerInterface $container)
+    {
         $list = $container->list();
-        $intersect = array_intersect_key(array_flip($this->ids), $list);
+        /*
+        $intersect = array_intersect_assoc($list, $this->map);
+        foreach ($intersect as $id => $type) {
+
+        }*/
+
+        // getting different services
 
         // todo intersect
-        $diff = array_diff_assoc($list, $this->map);
-        if ($diff) {
-            $combined = $diff;
-            $this->map = array_merge($this->map, $combined);
+        if ($diff = array_diff_assoc($list, $this->map)) {
+            foreach ($diff as $serviceId => $returnType) {
+                $this->addService($containerId, $serviceId, $returnType);
+            }
         }
-        var_dump($this->map);
-
-        $this->containers[$id++] = $container;
 
         $this->ids = array_merge($this->ids, array_keys($list));
 
+    }
+
+    protected function addService(int $containerId, string $serviceId, string $returnType)
+    {
+        if (array_key_exists($serviceId, $this->ids)) {
+            // todo
+        }
+        $this->types[$returnType] = $containerId;
+        $this->ids[$serviceId] = $containerId;
+        $this->map[$serviceId] = $returnType;
     }
 
     /**
