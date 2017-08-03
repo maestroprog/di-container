@@ -2,22 +2,41 @@
 
 namespace Qwerty\Container;
 
+use Psr\Container\ContainerInterface;
+
 abstract class AbstractBasicContainer implements IterableContainerInterface
 {
     private $list;
     private $instances = [];
 
+    /**
+     * @var ContainerInterface
+     */
+    private $globalContainer;
+
     public function get($id)
     {
-        $id = (new \ReflectionClass($id))->getShortName();
+        if (class_exists($id)) {
+            if (!($_id = array_search($id, $this->list))) {
+                $id = (new \ReflectionClass($id))->getShortName();
+            } else {
+                $id = $_id;
+            }
+        }
         if (array_key_exists($id, $this->instances)) {
             return $this->instances[$id];
         }
-        $method = 'get' . $id;
-        if (!method_exists($this, $method)) {
-            throw new \LogicException('Cannot call unknown method "' . $method . ' to get service "' . $id . '".');
+        if (isset($this->list[$id])) {
+            $method = 'get' . $id;
+            if (!method_exists($this, $method)) {
+                throw new \LogicException('Call unknown method "' . $method . ' for getting service "' . $id . '".');
+            }
+            return $this->instances[$id] = $this->{$method}();
         }
-        return $this->instances[$id] = $this->{$method}();
+        if (null === $this->globalContainer) {
+            throw new \RuntimeException('Cannot find service "' . $id . '", global container not isset.');
+        }
+        return $this->globalContainer->get($id);
     }
 
     public function has($id)
@@ -39,5 +58,10 @@ abstract class AbstractBasicContainer implements IterableContainerInterface
             }
         }
         return $this->list;
+    }
+
+    public function registered(ContainerInterface $container)
+    {
+        $this->globalContainer = $container;
     }
 }

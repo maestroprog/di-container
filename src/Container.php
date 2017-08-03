@@ -18,6 +18,7 @@ class Container implements IterableContainerInterface
     private $ids = [];
     private $types = [];
     private $map = [];
+    private $list = [];
     private $priorites = [];
 
     private function __construct()
@@ -64,6 +65,10 @@ class Container implements IterableContainerInterface
         $this->priorites[$id] = $priority;
 
         $this->loadServices($id, $container);
+
+        if ($container instanceof AbstractBasicContainer) {
+            $container->registered($this); // todo kill this crutch
+        }
     }
 
     protected function loadServices(int $containerId, IterableContainerInterface $container)
@@ -77,25 +82,53 @@ class Container implements IterableContainerInterface
 
         // getting different services
 
-        // todo intersect
+        foreach ($list as $serviceId => $returnType) {
+            $this->addService($containerId, $serviceId, $returnType);
+        }
+        /*// todo intersect
         if ($diff = array_diff_assoc($list, $this->map)) {
             foreach ($diff as $serviceId => $returnType) {
                 $this->addService($containerId, $serviceId, $returnType);
             }
-        }
+        }*/
 
-        $this->ids = array_merge($this->ids, array_keys($list));
+//        $this->ids = array_merge($this->ids, array_keys($list));
 
     }
 
     protected function addService(int $containerId, string $serviceId, string $returnType)
     {
         if (array_key_exists($serviceId, $this->ids)) {
-            // todo
+            if ($this->list[$serviceId] !== $returnType) {
+                if (class_exists($returnType)) {
+                    throw new \LogicException(sprintf(
+                        'Invalid override: Service "%s" with type "%s" override service with type "%s"',
+                        $serviceId,
+                        $returnType,
+                        $this->map[$serviceId]
+                    ));
+                } else {
+                    throw new \LogicException(sprintf(
+                        'Invalid override: Service "%s" with type "%s" override service with type "%s"',
+                        $serviceId,
+                        $returnType,
+                        $this->map[$serviceId]
+                    ));
+                }
+            }
+            if ($this->priorites[$this->ids[$serviceId]] === $this->priorites[$containerId]) {
+                throw new \LogicException('Equals priority in two services, please, fix it!');
+            } elseif ($this->priorites[$this->ids[$serviceId]] > $this->priorites[$containerId]) {
+                return;
+            }
         }
         $this->types[$returnType] = $containerId;
         $this->ids[$serviceId] = $containerId;
-        $this->map[$serviceId] = $returnType;
+        if ($returnType !== $serviceId && class_exists($returnType)) {
+        }
+
+        $this->map[$returnType] = $serviceId; // todo check this reversed mapping check
+        $this->list[$serviceId] = $returnType;
     }
 
     /**
@@ -110,7 +143,7 @@ class Container implements IterableContainerInterface
         if (!$this->has($id)) {
             throw new NotFoundException('Not found "' . $id . '" in Di container.');
         }
-        return $this->instances[$id] = $this->containers[$this->map[$id]]->get($id);
+        return $this->instances[$id] = $this->containers[$this->ids[$id]]->get($id);
     }
 
     /**
@@ -118,7 +151,7 @@ class Container implements IterableContainerInterface
      */
     public function has($id)
     {
-        return in_array($id, $this->ids, true);
+        return array_key_exists($id, $this->ids);
     }
 
     /**
@@ -126,6 +159,6 @@ class Container implements IterableContainerInterface
      */
     public function list(): array
     {
-        return $this->ids;
+        return $this->list;
     }
 }

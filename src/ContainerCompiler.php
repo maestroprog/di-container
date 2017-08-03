@@ -26,14 +26,12 @@ use Qwerty\Container\AbstractCompiledContainer;
 final class CompiledContainer extends AbstractCompiledContainer
 {
 PHP;
-        foreach ($this->container->list() as $id) {
-
-            $name = str_replace('\\', '', $id);
+        foreach ($this->container->list() as $id => $type) {
             $class .= <<<PHP
 
-    public function get{$name}(): {$id}
+    public function get{$id}(): {$type}
     {
-        // return \$this->get('$id');
+         return \$this->get('$id');
     }
 
 PHP;
@@ -42,6 +40,7 @@ PHP;
 
         $class .= <<<PHP
 }
+
 PHP;
 
         file_put_contents($path, $class);

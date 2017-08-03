@@ -5,7 +5,7 @@ use Qwerty\Container\HasPriorityInterface;
 
 class SampleOverrideContainer extends AbstractBasicContainer implements HasPriorityInterface
 {
-    public function getCache(): CacheInterface
+    public function getCache(): InMemoryCache
     {
         return new InMemoryCache();
     }
