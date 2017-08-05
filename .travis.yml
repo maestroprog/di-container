@@ -2,7 +2,9 @@ language: php
 php:
   - '7.0'
   - '7.1'
-  - hhvm # on Trusty only
-  - nightly
 before_script: composer install
-script: phpunit --bootstrap=vendor/autoload.php tests
+script:
+  - php vendor/bin/phpunit
+
+after_script:
+  - php vendor/bin/coveralls -v

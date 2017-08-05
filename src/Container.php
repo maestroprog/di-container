@@ -124,6 +124,7 @@ class Container implements IterableContainerInterface
         }
         $this->types[$returnType] = $containerId;
         $this->ids[$serviceId] = $containerId;
+        $this->ids[$returnType] = $containerId;
         if ($returnType !== $serviceId && class_exists($returnType)) {
         }
 

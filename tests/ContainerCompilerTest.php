@@ -10,18 +10,24 @@ use Qwerty\Container\AbstractCompiledContainer;
 use Qwerty\Container\Container;
 use Qwerty\Container\ContainerCompiler;
 
+/**
+ * @covers \Qwerty\Container\Container
+ * @covers \Qwerty\Container\ContainerCompiler
+ * @covers \Qwerty\Container\AbstractBasicContainer
+ * @covers \Qwerty\Container\AbstractCompiledContainer
+ */
 class ContainerCompilerTest extends TestCase
 {
     public function testCompile()
     {
-        $container = Container::instance();
+        $container = clone Container::instance();
         $container->register(new MyContainer());
         $compiler = new ContainerCompiler($container);
         $compiler->compile($php = tempnam(sys_get_temp_dir(), 'compiler'));
         $this->assertFileExists($php);
         require_once $php;
 
-        $this->assertInstanceOf(AbstractCompiledContainer::class, \CompiledContainer::class);
+        $this->assertInstanceOf(AbstractCompiledContainer::class, new \CompiledContainer($container));
         try {
             (new \ReflectionClass(\CompiledContainer::class))->getMethod('getMyService1');
         } catch (\ReflectionException $e) {

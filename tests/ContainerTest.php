@@ -8,6 +8,12 @@ use PHPUnit\Framework\TestCase;
 use Qwerty\Container\AbstractBasicContainer;
 use Qwerty\Container\Container;
 
+/**
+ * @covers \Qwerty\Container\Container
+ * @covers \Qwerty\Container\ContainerCompiler
+ * @covers \Qwerty\Container\AbstractBasicContainer
+ * @covers \Qwerty\Container\AbstractCompiledContainer
+ */
 class ContainerTest extends TestCase
 {
     /**
@@ -17,7 +23,7 @@ class ContainerTest extends TestCase
 
     protected function setUp()
     {
-        $this->container = Container::instance();
+        $this->container = clone Container::instance();
     }
 
     public function testContainer()
@@ -28,6 +34,7 @@ class ContainerTest extends TestCase
         $service2 = $this->container->get(MyService2::class);
 
         $service1 = $service2->getService1();
+
 
         $this->assertEquals($service1, $this->container->get(MyService1::class));
     }
