@@ -1,7 +1,7 @@
 <?php
 
-use Qwerty\Container\AbstractBasicContainer;
-use Qwerty\Container\HasPriorityInterface;
+use Maestroprog\Container\AbstractBasicContainer;
+use Maestroprog\Container\HasPriorityInterface;
 
 class SampleOverrideContainer extends AbstractBasicContainer implements HasPriorityInterface
 {

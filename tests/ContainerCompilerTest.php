@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Qwerty\Container\Tests;
+namespace Maestroprog\Container\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Qwerty\Container\AbstractBasicContainer;
-use Qwerty\Container\AbstractCompiledContainer;
-use Qwerty\Container\Container;
-use Qwerty\Container\ContainerCompiler;
+use Maestroprog\Container\AbstractBasicContainer;
+use Maestroprog\Container\AbstractCompiledContainer;
+use Maestroprog\Container\Container;
+use Maestroprog\Container\ContainerCompiler;
 
 /**
- * @covers \Qwerty\Container\Container
- * @covers \Qwerty\Container\ContainerCompiler
- * @covers \Qwerty\Container\AbstractBasicContainer
- * @covers \Qwerty\Container\AbstractCompiledContainer
+ * @covers \Maestroprog\Container\Container
+ * @covers \Maestroprog\Container\ContainerCompiler
+ * @covers \Maestroprog\Container\AbstractBasicContainer
+ * @covers \Maestroprog\Container\AbstractCompiledContainer
  */
 class ContainerCompilerTest extends TestCase
 {

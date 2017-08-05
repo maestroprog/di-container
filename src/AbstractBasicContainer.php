@@ -1,6 +1,6 @@
 <?php
 
-namespace Qwerty\Container;
+namespace Maestroprog\Container;
 
 use Psr\Container\ContainerInterface;
 
@@ -16,11 +16,12 @@ abstract class AbstractBasicContainer implements IterableContainerInterface
 
     public function get($id)
     {
+        $id = ucfirst($id);
         if (class_exists($id)) {
-            if (!($_id = array_search($id, $this->list))) {
+            if (!($serviceId = array_search($id, $this->list))) {
                 $id = (new \ReflectionClass($id))->getShortName();
             } else {
-                $id = $_id;
+                $id = $serviceId;
             }
         }
         if (array_key_exists($id, $this->instances)) {

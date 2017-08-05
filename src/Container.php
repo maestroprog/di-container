@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Qwerty\Container;
+namespace Maestroprog\Container;
 
 use Psr\Container\ContainerInterface;
 
@@ -19,7 +19,7 @@ class Container implements IterableContainerInterface
     private $types = [];
     private $map = [];
     private $list = [];
-    private $priorites = [];
+    private $priorities = [];
 
     private function __construct()
     {
@@ -62,7 +62,7 @@ class Container implements IterableContainerInterface
         if ($container instanceof HasPriorityInterface) {
             $priority = $container->priority();
         }
-        $this->priorites[$id] = $priority;
+        $this->priorities[$id] = $priority;
 
         $this->loadServices($id, $container);
 
@@ -105,7 +105,7 @@ class Container implements IterableContainerInterface
                         'Invalid override: Service "%s" with type "%s" override service with type "%s"',
                         $serviceId,
                         $returnType,
-                        $this->map[$serviceId]
+                        $this->list[$serviceId]
                     ));
                 } else {
                     throw new \LogicException(sprintf(
@@ -116,9 +116,9 @@ class Container implements IterableContainerInterface
                     ));
                 }
             }
-            if ($this->priorites[$this->ids[$serviceId]] === $this->priorites[$containerId]) {
+            if ($this->priorities[$this->ids[$serviceId]] === $this->priorities[$containerId]) {
                 throw new \LogicException('Equals priority in two services, please, fix it!');
-            } elseif ($this->priorites[$this->ids[$serviceId]] > $this->priorites[$containerId]) {
+            } elseif ($this->priorities[$this->ids[$serviceId]] > $this->priorities[$containerId]) {
                 return;
             }
         }

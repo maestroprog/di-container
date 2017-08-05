@@ -1,6 +1,6 @@
 <?php
 
-namespace Qwerty\Container;
+namespace Maestroprog\Container;
 
 class ContainerCompiler
 {
@@ -21,7 +21,7 @@ class ContainerCompiler
         $class = <<<PHP
 <?php
 
-use Qwerty\Container\AbstractCompiledContainer;
+use Maestroprog\Container\AbstractCompiledContainer;
 
 final class CompiledContainer extends AbstractCompiledContainer
 {

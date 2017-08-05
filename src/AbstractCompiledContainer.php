@@ -1,6 +1,6 @@
 <?php
 
-namespace Qwerty\Container;
+namespace Maestroprog\Container;
 
 use Psr\Container\ContainerInterface;
 

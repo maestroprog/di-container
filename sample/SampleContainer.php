@@ -1,12 +1,17 @@
 <?php
 
-use Qwerty\Container\AbstractBasicContainer;
+use Maestroprog\Container\AbstractBasicContainer;
 
 class SampleContainer extends AbstractBasicContainer
 {
+    public function getCachePath(): string
+    {
+        return sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'SampleCache';
+    }
+
     public function getFileCache(): CacheInterface
     {
-        return new FileCache(sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'SampleCache');
+        return new FileCache($this->get('cachePath'));
     }
 
     public function getSampleService(): SampleService

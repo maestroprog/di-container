@@ -1,6 +1,6 @@
 <?php
 
-namespace Qwerty\Container;
+namespace Maestroprog\Container;
 
 interface HasPriorityInterface
 {
