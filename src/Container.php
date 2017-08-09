@@ -99,7 +99,7 @@ class Container implements IterableContainerInterface
     protected function addService(int $containerId, string $serviceId, string $returnType)
     {
         if (array_key_exists($serviceId, $this->ids)) {
-            if ($this->list[$serviceId] !== $returnType) {
+            if ($this->list[$serviceId] !== $returnType && !is_a($this->list[$serviceId], $returnType, true)) {
                 if (class_exists($returnType)) {
                     throw new \LogicException(sprintf(
                         'Invalid override: Service "%s" with type "%s" override service with type "%s"',
@@ -112,7 +112,7 @@ class Container implements IterableContainerInterface
                         'Invalid override: Service "%s" with type "%s" override service with type "%s"',
                         $serviceId,
                         $returnType,
-                        $this->map[$serviceId]
+                        $this->list[$serviceId]
                     ));
                 }
             }

@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace Maestroprog\Container\Tests;
 
-use Maestroprog\Container\IterableContainerInterface;
+use Maestroprog\Container\HasPriorityInterface;
 use Maestroprog\Container\NotFoundException;
 use PHPUnit\Framework\TestCase;
 use Maestroprog\Container\AbstractBasicContainer;
 use Maestroprog\Container\Container;
 
 /**
+ * @covers \Maestroprog\Container\HasPriorityInterface
+ * @covers \Maestroprog\Container\IterableContainerInterface
+ * @covers \Maestroprog\Container\NotFoundException
  * @covers \Maestroprog\Container\Container
  * @covers \Maestroprog\Container\ContainerCompiler
  * @covers \Maestroprog\Container\AbstractBasicContainer
@@ -77,15 +80,21 @@ class ContainerTest extends TestCase
 
     public function testServiceWithCommonInterface()
     {
-        $container2 = new class extends AbstractBasicContainer
+        $container2 = new class extends AbstractBasicContainer implements HasPriorityInterface
         {
             public function getMyService1(): MyServiceInterface
             {
                 return new MyService1(true);
             }
+
+            public function priority(): int
+            {
+                return 2;
+            }
         };
         $this->container->register(new MyContainer());
         $this->container->register($container2);
+        $this->assertInstanceOf(MyServiceInterface::class, $container2->getMyService1());
     }
 }
 
