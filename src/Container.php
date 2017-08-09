@@ -41,11 +41,6 @@ class Container implements IterableContainerInterface
         return self::$instance ?? self::$instance = new static();
     }
 
-    public static function boot()
-    {
-
-    }
-
     /**
      * Регистрирует новый контейнер.
      *
@@ -100,21 +95,12 @@ class Container implements IterableContainerInterface
     {
         if (array_key_exists($serviceId, $this->ids)) {
             if ($this->list[$serviceId] !== $returnType && !is_a($this->list[$serviceId], $returnType, true)) {
-                if (class_exists($returnType)) {
-                    throw new \LogicException(sprintf(
-                        'Invalid override: Service "%s" with type "%s" override service with type "%s"',
-                        $serviceId,
-                        $returnType,
-                        $this->list[$serviceId]
-                    ));
-                } else {
-                    throw new \LogicException(sprintf(
-                        'Invalid override: Service "%s" with type "%s" override service with type "%s"',
-                        $serviceId,
-                        $returnType,
-                        $this->list[$serviceId]
-                    ));
-                }
+                throw new \LogicException(sprintf(
+                    'Invalid override: Service "%s" with type "%s" override service with type "%s"',
+                    $serviceId,
+                    $returnType,
+                    $this->list[$serviceId]
+                ));
             }
             if ($this->priorities[$this->ids[$serviceId]] === $this->priorities[$containerId]) {
                 throw new \LogicException('Equals priority in two services, please, fix it!');
@@ -125,8 +111,8 @@ class Container implements IterableContainerInterface
         $this->types[$returnType] = $containerId;
         $this->ids[$serviceId] = $containerId;
         $this->ids[$returnType] = $containerId;
-        if ($returnType !== $serviceId && class_exists($returnType)) {
-        }
+        /*if ($returnType !== $serviceId && class_exists($returnType)) {
+        }*/
 
         $this->map[$returnType] = $serviceId; // todo check this reversed mapping check
         $this->list[$serviceId] = $returnType;

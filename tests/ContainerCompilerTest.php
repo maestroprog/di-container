@@ -27,12 +27,14 @@ class ContainerCompilerTest extends TestCase
         $this->assertFileExists($php);
         require_once $php;
 
-        $this->assertInstanceOf(AbstractCompiledContainer::class, new \CompiledContainer($container));
+        $this->assertInstanceOf(AbstractCompiledContainer::class, $container = new \CompiledContainer($container));
         try {
             (new \ReflectionClass(\CompiledContainer::class))->getMethod('getMyService1');
         } catch (\ReflectionException $e) {
             $this->assertTrue(false, 'Method getMyService1 does not exists.');
         }
+        $myService1 = $container->get(MyService1::class);
+        $this->assertInstanceOf(MyService1::class, $myService1);
         unlink($php);
     }
 }

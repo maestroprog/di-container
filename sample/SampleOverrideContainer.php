@@ -5,14 +5,14 @@ use Maestroprog\Container\HasPriorityInterface;
 
 class SampleOverrideContainer extends AbstractBasicContainer implements HasPriorityInterface
 {
-    public function getCache(): InMemoryCache
+    public function getCache(): CacheInterface
     {
         return new InMemoryCache();
     }
 
     public function getSampleService(): SampleService
     {
-        return new SampleService($this->get(InMemoryCache::class));
+        return new SampleService($this->get(CacheInterface::class));
     }
 
     public function getMyCustomSampleService(): SampleService

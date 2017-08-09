@@ -35,9 +35,11 @@ class ContainerTest extends TestCase
     {
         $this->container->register(new MyContainer());
 
+        $this->container->get(MyService2::class);
         /** @var MyService2 $service2 */
         $service2 = $this->container->get(MyService2::class);
 
+        $service2->getService1();
         $service1 = $service2->getService1();
 
         $this->assertEquals($service1, $this->container->get(MyService1::class));
@@ -82,7 +84,7 @@ class ContainerTest extends TestCase
     {
         $container2 = new class extends AbstractBasicContainer implements HasPriorityInterface
         {
-            public function getMyService1(): MyServiceInterface
+            public function getMyService1(): MyService1
             {
                 return new MyService1(true);
             }
@@ -95,6 +97,53 @@ class ContainerTest extends TestCase
         $this->container->register(new MyContainer());
         $this->container->register($container2);
         $this->assertInstanceOf(MyServiceInterface::class, $container2->getMyService1());
+    }
+
+    public function testLowPriorityContainer()
+    {
+        $container2 = new class extends AbstractBasicContainer implements HasPriorityInterface
+        {
+            public function getMyService1(): MyService1
+            {
+                return new MyService1(true);
+            }
+
+            public function priority(): int
+            {
+                return -1;
+            }
+        };
+        $this->container->register(new MyContainer());
+        $this->container->register($container2);
+        $this->assertInstanceOf(MyServiceInterface::class, $container2->getMyService1());
+    }
+
+    public function testHasNoGlobalContainer()
+    {
+        $this->expectException(\RuntimeException::class);
+        $container = new MyContainer();
+        $container->get('don\'t know');
+    }
+
+    public function testUsingGlobalContainer()
+    {
+        $this->expectException(NotFoundException::class);
+        $container = new MyContainer();
+        $this->container->register($container);
+        $container->get('don\'t know');
+    }
+
+    public function testContainerMagicCall()
+    {
+        $this->container->register(new MyContainer());
+        $service1 = $this->container->getMyService1();
+        $this->assertInstanceOf(MyService1::class, $service1);
+    }
+
+    public function testContainerInvalidMagicCall()
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->container->invalid();
     }
 }
 

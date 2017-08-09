@@ -44,6 +44,5 @@ PHP;
 PHP;
 
         file_put_contents($path, $class);
-
     }
 }

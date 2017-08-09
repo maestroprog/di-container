@@ -17,21 +17,16 @@ abstract class AbstractBasicContainer implements IterableContainerInterface
     public function get($id)
     {
         $id = ucfirst($id);
-        if (class_exists($id)) {
-            if (!($serviceId = array_search($id, $this->list))) {
-                $id = (new \ReflectionClass($id))->getShortName();
-            } else {
+        if (class_exists($id) || interface_exists($id) || trait_exists($id)) {
+            if ($serviceId = array_search($id, $this->list)) {
                 $id = $serviceId;
             }
         }
         if (array_key_exists($id, $this->instances)) {
             return $this->instances[$id];
         }
-        if (isset($this->list[$id])) {
-            $method = 'get' . $id;
-            if (!method_exists($this, $method)) {
-                throw new \LogicException('Call unknown method "' . $method . ' for getting service "' . $id . '".');
-            }
+        $method = 'get' . $id;
+        if (isset($this->list[$id]) || method_exists($this, $method)) {
             return $this->instances[$id] = $this->{$method}();
         }
         if (null === $this->globalContainer) {
@@ -40,6 +35,10 @@ abstract class AbstractBasicContainer implements IterableContainerInterface
         return $this->globalContainer->get($id);
     }
 
+    /**
+     * @inheritdoc
+     * @codeCoverageIgnore
+     */
     public function has($id)
     {
         return in_array($id, $this->list, true);

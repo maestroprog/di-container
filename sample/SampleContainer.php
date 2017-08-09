@@ -9,13 +9,13 @@ class SampleContainer extends AbstractBasicContainer
         return sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'SampleCache';
     }
 
-    public function getFileCache(): CacheInterface
+    public function getFileCache(): FileCache
     {
         return new FileCache($this->get('cachePath'));
     }
 
     public function getSampleService(): SampleService
     {
-        return new SampleService($this->get(FileCache::class));
+        return new SampleService($this->get(CacheInterface::class));
     }
 }
