@@ -11,6 +11,7 @@ use Maestroprog\Container\AbstractBasicContainer;
 use Maestroprog\Container\Container;
 
 /**
+ * @covers \Maestroprog\Container\Argument
  * @covers \Maestroprog\Container\HasPriorityInterface
  * @covers \Maestroprog\Container\IterableContainerInterface
  * @covers \Maestroprog\Container\NotFoundException
@@ -36,6 +37,7 @@ class ContainerTest extends TestCase
         $this->container->register(new MyContainer());
 
         $this->container->get(MyService2::class);
+
         /** @var MyService2 $service2 */
         $service2 = $this->container->get(MyService2::class);
 

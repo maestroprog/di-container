@@ -9,7 +9,7 @@ interface IterableContainerInterface extends ContainerInterface
     /**
      * Вернёт список зарегистрированных в контейнере "id".
      *
-     * @return string[]
+     * @return Argument[]
      */
     public function list(): array;
 }

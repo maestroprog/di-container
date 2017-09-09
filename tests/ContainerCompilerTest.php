@@ -2,52 +2,68 @@
 
 declare(strict_types=1);
 
-namespace Maestroprog\Container\Tests;
+namespace Maestroprog\Container\Tests {
 
-use PHPUnit\Framework\TestCase;
-use Maestroprog\Container\AbstractBasicContainer;
-use Maestroprog\Container\AbstractCompiledContainer;
-use Maestroprog\Container\Container;
-use Maestroprog\Container\ContainerCompiler;
+    use PHPUnit\Framework\TestCase;
+    use Maestroprog\Container\AbstractBasicContainer;
+    use Maestroprog\Container\AbstractCompiledContainer;
+    use Maestroprog\Container\Container;
+    use Maestroprog\Container\ContainerCompiler;
+    use Psr\Container\NotFoundExceptionInterface;
 
-/**
- * @covers \Maestroprog\Container\Container
- * @covers \Maestroprog\Container\ContainerCompiler
- * @covers \Maestroprog\Container\AbstractBasicContainer
- * @covers \Maestroprog\Container\AbstractCompiledContainer
- */
-class ContainerCompilerTest extends TestCase
-{
-    public function testCompile()
+    class ContainerCompilerTest extends TestCase
     {
-        $container = clone Container::instance();
-        $container->register(new MyContainer());
-        $compiler = new ContainerCompiler($container);
-        $compiler->compile($php = tempnam(sys_get_temp_dir(), 'compiler'));
-        $this->assertFileExists($php);
-        require_once $php;
+        public function testCompile()
+        {
+            $container = clone Container::instance();
+            $container->register(new MyContainer2());
+            $compiler = new ContainerCompiler($container);
+            $compiler->compile($php = tempnam(sys_get_temp_dir(), 'compiler'));
+            $this->assertFileExists($php);
+            require_once $php;
 
-        $this->assertInstanceOf(AbstractCompiledContainer::class, $container = new \CompiledContainer($container));
-        try {
-            (new \ReflectionClass(\CompiledContainer::class))->getMethod('getMyService1');
-        } catch (\ReflectionException $e) {
-            $this->assertTrue(false, 'Method getMyService1 does not exists.');
+            $this->assertInstanceOf(AbstractCompiledContainer::class, $container = new \CompiledContainer($container));
+            try {
+                (new \ReflectionClass(\CompiledContainer::class))->getMethod('getMyService1');
+            } catch (\ReflectionException $e) {
+                $this->assertTrue(false, 'Method getMyService1 does not exists.');
+            }
+            $myService1 = $container->get(MyService1::class);
+            $this->assertInstanceOf(MyService1::class, $myService1);
+            $myService1 = $container->get('MyService1');
+            $this->assertInstanceOf(MyService1::class, $myService1);
+            try {
+                $container->get('InvalidUnknown');
+            } catch (NotFoundExceptionInterface $e) {
+                ;
+            }
+            $this->assertNotNull($e);
+            unlink($php);
         }
-        $myService1 = $container->get(MyService1::class);
-        $this->assertInstanceOf(MyService1::class, $myService1);
-        unlink($php);
+    }
+
+    class MyContainer2 extends AbstractBasicContainer
+    {
+        public function getMyServiceOff(): MyService1
+        {
+            return new MyService1(false);
+        }
+
+        public function getMyServiceOn(): MyService1
+        {
+            return new MyService1(true);
+        }
+
+        public function getGlobalService(): \MyService
+        {
+            return new \MyService();
+        }
     }
 }
 
-class MyContainer2 extends AbstractBasicContainer
-{
-    public function getMyServiceOff(): MyService1
+namespace {
+    class MyService
     {
-        return new MyService1(false);
-    }
 
-    public function getMyServiceOn(): MyService1
-    {
-        return new MyService1(true);
     }
 }

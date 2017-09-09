@@ -18,20 +18,12 @@ class Container implements IterableContainerInterface
     private $ids = [];
     private $types = [];
     private $map = [];
+
+    /**
+     * @var Argument[]
+     */
     private $list = [];
     private $priorities = [];
-
-    private function __construct()
-    {
-    }
-
-    public function __call($name, $arguments)
-    {
-        if (substr($name, 0, 3) === 'get') {
-            return $this->get(substr($name, 3));
-        }
-        throw new \RuntimeException('Unknown using magic method "' . $name . '".');
-    }
 
     /**
      * @return Container|AbstractCompiledContainer|\CompiledContainer
@@ -39,6 +31,11 @@ class Container implements IterableContainerInterface
     public static function instance(): Container
     {
         return self::$instance ?? self::$instance = new static();
+    }
+
+    private function __construct()
+    {
+        $this->containers = [];
     }
 
     /**
@@ -66,42 +63,43 @@ class Container implements IterableContainerInterface
         }
     }
 
+    /**
+     * @param int $containerId
+     * @param IterableContainerInterface $container
+     * @return void
+     */
     protected function loadServices(int $containerId, IterableContainerInterface $container)
     {
         $list = $container->list();
-        /*
-        $intersect = array_intersect_assoc($list, $this->map);
-        foreach ($intersect as $id => $type) {
 
-        }*/
-
-        // getting different services
-
-        foreach ($list as $serviceId => $returnType) {
-            $this->addService($containerId, $serviceId, $returnType);
+        foreach ($list as $serviceId => $argument) {
+            $this->addService($containerId, $serviceId, $argument);
         }
-        /*// todo intersect
-        if ($diff = array_diff_assoc($list, $this->map)) {
-            foreach ($diff as $serviceId => $returnType) {
-                $this->addService($containerId, $serviceId, $returnType);
-            }
-        }*/
-
-//        $this->ids = array_merge($this->ids, array_keys($list));
-
     }
 
-    protected function addService(int $containerId, string $serviceId, string $returnType)
+    /**
+     * @param int $containerId
+     * @param string $serviceId
+     * @param Argument $argument
+     * @return void
+     */
+    protected function addService(int $containerId, string $serviceId, Argument $argument)
     {
+        $returnType = $argument->getReturnType();
+
         if (array_key_exists($serviceId, $this->ids)) {
-            if ($this->list[$serviceId] !== $returnType && !is_a($this->list[$serviceId], $returnType, true)) {
+
+            $isSubclass = is_a($this->list[$serviceId]->getReturnType(), $returnType, true);
+
+            if ($this->list[$serviceId]->getReturnType() !== $returnType && !$isSubclass) {
                 throw new \LogicException(sprintf(
                     'Invalid override: Service "%s" with type "%s" override service with type "%s"',
                     $serviceId,
                     $returnType,
-                    $this->list[$serviceId]
+                    $this->list[$serviceId]->getReturnType()
                 ));
             }
+
             if ($this->priorities[$this->ids[$serviceId]] === $this->priorities[$containerId]) {
                 throw new \LogicException('Equals priority in two services, please, fix it!');
             } elseif ($this->priorities[$this->ids[$serviceId]] > $this->priorities[$containerId]) {
@@ -115,7 +113,7 @@ class Container implements IterableContainerInterface
         }*/
 
         $this->map[$returnType] = $serviceId; // todo check this reversed mapping check
-        $this->list[$serviceId] = $returnType;
+        $this->list[$serviceId] = $argument;
     }
 
     /**
@@ -147,5 +145,13 @@ class Container implements IterableContainerInterface
     public function list(): array
     {
         return $this->list;
+    }
+
+    public function __call($name, $arguments)
+    {
+        if (substr($name, 0, 3) === 'get') {
+            return $this->get(substr($name, 3));
+        }
+        throw new \RuntimeException('Unknown using magic method "' . $name . '".');
     }
 }
