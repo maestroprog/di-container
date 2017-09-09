@@ -52,6 +52,8 @@ abstract class  AbstractBasicContainer implements IterableContainerInterface
     {
         if (null === $this->list) {
             $this->list = [];
+            $excluded = [];
+
             $reflect = new \ReflectionClass($this);
 
             foreach ($reflect->getMethods() as $method) {
@@ -63,9 +65,17 @@ abstract class  AbstractBasicContainer implements IterableContainerInterface
                         continue;
                     }
                     $serviceId = substr($methodName, 3);
-                    $this->list[$serviceId] = $argument;
+                    if (!in_array($serviceId, $excluded, true)) {
+                        $this->list[$serviceId] = $argument;
+                    }
                     if (!$argument->isDecorator()) {
                         $this->original[$serviceId] = $serviceId . 'Original';
+                    } else {
+                        $decorates = $argument->getDecoratorArguments();
+                        if ($serviceId !== $decorates) {
+                            $excluded[] = $decorates;
+                            unset($this->list[$decorates]);
+                        }
                     }
                 }
             }

@@ -14,6 +14,11 @@ class SampleContainer extends AbstractBasicContainer
         return new FileCache($this->get('cachePath'));
     }
 
+    public function getCache(): CacheInterface
+    {
+        return $this->getFileCache();
+    }
+
     public function getSampleService(): SampleService
     {
         return new SampleService($this->get(CacheInterface::class));

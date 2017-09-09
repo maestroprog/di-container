@@ -190,7 +190,7 @@ class ContainerTest extends TestCase
         $this->assertEquals('I\'m decorator! of I\'m service1', $service->response());
     }
 
-    public function testAdvancedDecoration()
+    public function testAdvancedDecoration1()
     {
         $this->container->register(new MyContainer());
         $this->container->register(new class extends AbstractBasicContainer
@@ -216,6 +216,37 @@ class ContainerTest extends TestCase
                 };
             }
         });
+        /** @var MyService1 $service */
+        $service = $this->container->get(MyService1::class);
+        $this->assertEquals('I\'m decorator! of I\'m service1', $service->response());
+    }
+
+    public function testAdvancedDecoration2()
+    {
+        $this->container->register(new class extends AbstractBasicContainer
+        {
+            /**
+             * @decorates MyService1
+             */
+            public function getMyService1(): MyService1
+            {
+                return new class($this->get('MyService1Original')) extends MyService1
+                {
+                    private $decorates;
+
+                    public function __construct(MyService1 $decorates)
+                    {
+                        $this->decorates = $decorates;
+                    }
+
+                    public function response(): string
+                    {
+                        return 'I\'m decorator! of ' . $this->decorates->response();
+                    }
+                };
+            }
+        });
+        $this->container->register(new MyContainer());
         /** @var MyService1 $service */
         $service = $this->container->get(MyService1::class);
         $this->assertEquals('I\'m decorator! of I\'m service1', $service->response());

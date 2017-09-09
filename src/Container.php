@@ -148,7 +148,6 @@ class Container implements IterableContainerInterface
             if ($argument->isDecorator() && $serviceId === $argument->getDecoratorArguments()) {
 
                 $decoratesId = $serviceId;
-
                 if ($this->has($decoratesId)) {
                     $decoratesArgument = $this->list[$decoratesId];
                     $decoratesContainer = $this->ids[$decoratesId];
@@ -158,9 +157,14 @@ class Container implements IterableContainerInterface
                     $this->write($decoratesArgument, $decoratesId . 'Original', $decoratesContainer);
                 }
 
-                // nothing
             } elseif ($this->list[$serviceId]->isDecorator()) {
                 $serviceId .= 'Original';
+
+                $this->ids[$serviceId] = $containerId;
+                $this->list[$serviceId] = $argument;
+
+                return;
+
             } elseif ($this->priorities[$this->ids[$serviceId]] === $this->priorities[$containerId]) {
                 throw new \LogicException('Equals priority in two services, please, fix it!');
 
@@ -171,10 +175,7 @@ class Container implements IterableContainerInterface
 
         if ($argument->isDecorator()) {
             $decoratesId = $argument->getDecoratorArguments();
-
-
             $serviceId = $decoratesId;
-
         }
 
         $this->write($argument, $serviceId, $containerId);

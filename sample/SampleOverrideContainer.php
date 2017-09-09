@@ -10,6 +10,15 @@ class SampleOverrideContainer extends AbstractBasicContainer implements HasPrior
         return new InMemoryCache();
     }
 
+    /**
+     * @decorates Cache
+     * @return CacheInterface
+     */
+    public function getCacheDecorator(): CacheInterface
+    {
+        return new CacheDecorator($this->get('CacheOriginal'));
+    }
+
     public function getSampleService(): SampleService
     {
         return new SampleService($this->get(CacheInterface::class));
@@ -21,7 +30,7 @@ class SampleOverrideContainer extends AbstractBasicContainer implements HasPrior
         {
             public function test()
             {
-                
+
             }
         };
     }
