@@ -147,6 +147,84 @@ class ContainerTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $this->container->invalid();
     }
+
+    public function testOriginalKeyword()
+    {
+        $this->expectException(\LogicException::class);
+        $this->container->register(new class extends AbstractBasicContainer
+        {
+            public function getServiceOriginal(): int
+            {
+                return 1;
+            }
+        });
+    }
+
+    public function testSimpleDecoration()
+    {
+        $this->container->register(new class extends MyContainer
+        {
+            /**
+             * @decorates MyService1
+             */
+            public function getMyService1Decorator(): MyService1
+            {
+                return new class($this->get('MyService1Original')) extends MyService1
+                {
+                    private $decorates;
+
+                    public function __construct(MyService1 $decorates)
+                    {
+                        $this->decorates = $decorates;
+                    }
+
+                    public function response(): string
+                    {
+                        return 'I\'m decorator! of ' . $this->decorates->response();
+                    }
+                };
+            }
+        });
+        /** @var MyService1 $service */
+        $service = $this->container->get(MyService1::class);
+        $this->assertEquals('I\'m decorator! of I\'m service1', $service->response());
+    }
+
+    public function testAdvancedDecoration()
+    {
+        $this->container->register(new MyContainer());
+        $this->container->register(new class extends AbstractBasicContainer
+        {
+            /**
+             * @decorates MyService1
+             */
+            public function getMyService1(): MyService1
+            {
+                return new class($this->get('MyService1Original')) extends MyService1
+                {
+                    private $decorates;
+
+                    public function __construct(MyService1 $decorates)
+                    {
+                        $this->decorates = $decorates;
+                    }
+
+                    public function response(): string
+                    {
+                        return 'I\'m decorator! of ' . $this->decorates->response();
+                    }
+                };
+            }
+        });
+        /** @var MyService1 $service */
+        $service = $this->container->get(MyService1::class);
+        $this->assertEquals('I\'m decorator! of I\'m service1', $service->response());
+    }
+}
+
+interface MyServiceInterface
+{
+    public function response(): string;
 }
 
 class MyService1 implements MyServiceInterface
@@ -156,6 +234,11 @@ class MyService1 implements MyServiceInterface
     public function __construct(bool $enable)
     {
         $this->enabled = $enable;
+    }
+
+    public function response(): string
+    {
+        return 'I\'m service1';
     }
 }
 
@@ -172,6 +255,11 @@ class MyService2 implements MyServiceInterface
     {
         return $this->service1;
     }
+
+    public function response(): string
+    {
+        return 'I\'m service2';
+    }
 }
 
 class MyContainer extends AbstractBasicContainer
@@ -185,9 +273,4 @@ class MyContainer extends AbstractBasicContainer
     {
         return new MyService2($this->get(MyService1::class));
     }
-}
-
-interface MyServiceInterface
-{
-
 }

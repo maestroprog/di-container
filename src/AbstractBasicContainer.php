@@ -7,6 +7,7 @@ use Psr\Container\ContainerInterface;
 abstract class  AbstractBasicContainer implements IterableContainerInterface
 {
     private $list;
+    private $original = [];
     private $instances = [];
 
     /**
@@ -24,6 +25,9 @@ abstract class  AbstractBasicContainer implements IterableContainerInterface
         }
         if (array_key_exists($id, $this->instances)) {
             return $this->instances[$id];
+        }
+        if ($serviceId = array_search($id, $this->original)) {
+            $id = $serviceId;
         }
         $method = 'get' . $id;
         if (isset($this->list[$id]) || method_exists($this, $method)) {
@@ -58,7 +62,11 @@ abstract class  AbstractBasicContainer implements IterableContainerInterface
                         // не добавляем в общий контейнер внутренние аргументы
                         continue;
                     }
-                    $this->list[substr($methodName, 3)] = $argument;
+                    $serviceId = substr($methodName, 3);
+                    $this->list[$serviceId] = $argument;
+                    if (!$argument->isDecorator()) {
+                        $this->original[$serviceId] = $serviceId . 'Original';
+                    }
                 }
             }
         }
