@@ -110,16 +110,7 @@ abstract class  AbstractBasicContainer implements IterableContainerInterface
 
         return new Argument(
             (string)$method->getReturnType(),
-            $this->body($method->getFileName(), $method->getStartLine(), $method->getEndLine()),
             $result
         );
-    }
-
-    private function body(string $fileName, int $startLine, int $endLine): string
-    {
-        $file = file_get_contents($fileName);
-        $lines = explode("\n", $file);
-        $body = implode("\n", array_slice($lines, $startLine, $endLine - $startLine));
-        return substr($body, $start = strpos($body, '{') + 1, strrpos($body, '}') - $start);
     }
 }

@@ -14,12 +14,12 @@ class ArgumentTest extends TestCase
             'private' => '',
             'decorates' => 'class',
         ];
-        $argument = new Argument('string', 'test', $modifiers);
+        $argument = new Argument('string', $modifiers);
         $this->assertTrue($argument->isInternal());
         $this->assertTrue($argument->isDecorator());
         $this->assertEquals($modifiers['decorates'], $argument->getDecoratorArguments());
         $modifiers = [];
-        $argument = new Argument('string', 'test', $modifiers);
+        $argument = new Argument('string', $modifiers);
         $this->assertFalse($argument->isInternal());
         $this->assertFalse($argument->isDecorator());
         $this->assertEquals('', $argument->getDecoratorArguments());

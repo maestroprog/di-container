@@ -24,14 +24,15 @@ namespace Maestroprog\Container\Tests {
 
             $this->assertInstanceOf(AbstractCompiledContainer::class, $container = new \CompiledContainer($container));
             try {
-                (new \ReflectionClass(\CompiledContainer::class))->getMethod('getMyService1');
+                (new \ReflectionClass(\CompiledContainer::class))->getMethod('getMyServiceOff');
             } catch (\ReflectionException $e) {
-                $this->assertTrue(false, 'Method getMyService1 does not exists.');
+                $this->assertTrue(false, 'Method getMyServiceOff does not exists.');
             }
             $myService1 = $container->get(MyService1::class);
             $this->assertInstanceOf(MyService1::class, $myService1);
-            $myService1 = $container->get('MyService1');
-            $this->assertInstanceOf(MyService1::class, $myService1);
+            $myService2 = $container->get('MyServiceOff');
+            $this->assertInstanceOf(MyService1::class, $myService2);
+            $this->assertTrue($myService1 === $myService2);
             try {
                 $container->get('InvalidUnknown');
             } catch (NotFoundExceptionInterface $e) {
