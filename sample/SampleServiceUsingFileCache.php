@@ -2,11 +2,11 @@
 
 namespace TestNamespace;
 
-class SampleService
+class SampleServiceUsingFileCache
 {
     private $cache;
 
-    public function __construct(\CacheInterface $cache)
+    public function __construct(\FileCache $cache)
     {
         $this->cache = $cache;
     }

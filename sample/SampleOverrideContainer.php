@@ -2,6 +2,7 @@
 
 use Maestroprog\Container\AbstractBasicContainer;
 use Maestroprog\Container\HasPriorityInterface;
+use TestNamespace\SampleService;
 
 class SampleOverrideContainer extends AbstractBasicContainer implements HasPriorityInterface
 {
