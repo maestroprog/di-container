@@ -29,3 +29,4 @@ $service = $container->get(\TestNamespace\SampleService::class);
 var_dump($service->getSample1());
 var_dump($container->getSampleService()->getSample1());
 var_dump($container->get('SampleServiceAutoWire'));
+var_dump($container->get(\TestNamespace\SampleServiceUsingFileCache::class));
