@@ -18,6 +18,8 @@ $container = Container::instance();
 $container->register(new SampleOverrideContainer());
 $container->register(new SampleContainer());
 
+var_dump($container->get(\TestNamespace\SampleServiceUsingFileCache::class));
+
 //$compiler = new ContainerCompiler($container);
 //$compiler->compile(__DIR__ . '/container.php');
 
@@ -29,4 +31,3 @@ $service = $container->get(\TestNamespace\SampleService::class);
 var_dump($service->getSample1());
 var_dump($container->getSampleService()->getSample1());
 var_dump($container->get('SampleServiceAutoWire'));
-var_dump($container->get(\TestNamespace\SampleServiceUsingFileCache::class));
