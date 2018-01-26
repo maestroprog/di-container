@@ -16,9 +16,7 @@ use Maestroprog\Container\Container;
  * @covers \Maestroprog\Container\IterableContainerInterface
  * @covers \Maestroprog\Container\NotFoundException
  * @covers \Maestroprog\Container\Container
- * @covers \Maestroprog\Container\ContainerCompiler
  * @covers \Maestroprog\Container\AbstractBasicContainer
- * @covers \Maestroprog\Container\AbstractCompiledContainer
  */
 class ContainerTest extends TestCase
 {
@@ -29,7 +27,7 @@ class ContainerTest extends TestCase
 
     protected function setUp()
     {
-        $this->container = clone Container::instance();
+        $this->container = new Container();
     }
 
     public function testContainer()

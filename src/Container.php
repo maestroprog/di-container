@@ -8,8 +8,6 @@ use Psr\Container\ContainerInterface;
 
 class Container implements IterableContainerInterface
 {
-    private static $instance;
-
     /**
      * @var ContainerInterface[]
      */
@@ -25,15 +23,7 @@ class Container implements IterableContainerInterface
     private $list = [];
     private $priorities = [];
 
-    /**
-     * @return Container|AbstractCompiledContainer|\CompiledContainer
-     */
-    public static function instance(): Container
-    {
-        return self::$instance ?? self::$instance = new static();
-    }
-
-    private function __construct()
+    public function __construct()
     {
         $this->containers = [];
     }
@@ -56,11 +46,110 @@ class Container implements IterableContainerInterface
         }
         $this->priorities[$id] = $priority;
 
-        $this->loadServices($id, $container);
-
-        if ($container instanceof AbstractBasicContainer) {
-            $container->registered($this); // todo kill this crutch
+        if ($container instanceof IterableContainerInterface) {
+            $this->loadServices($id, $container);
         }
+    }
+
+
+    public function aget($id)
+    {
+        $id = ucfirst($id);
+        if (class_exists($id) || interface_exists($id) || trait_exists($id)) {
+            if ($serviceId = array_search($id, $this->list)) {
+                $id = $serviceId;
+            }
+        }
+        if (array_key_exists($id, $this->instances)) {
+            return $this->instances[$id];
+        }
+        if ($serviceId = array_search($id, $this->original)) {
+            $id = $serviceId;
+        }
+        $method = 'get' . $id;
+        if (isset($this->list[$id]) || method_exists($this, $method)) {
+            return $this->instances[$id] = $this->{$method}();
+        }
+        if (null === $this->globalContainer) {
+            throw new \RuntimeException('Cannot find service "' . $id . '", global container not isset.');
+        }
+        return $this->globalContainer->get($id);
+    }
+
+    protected function registerContainer($container): void
+    {
+        $this->list = [];
+        $excluded = [];
+
+        $reflect = new \ReflectionClass($container);
+
+        foreach ($reflect->getMethods() as $method) {
+            $methodName = $method->getName();
+            if (substr($methodName, 0, 3) === 'get' && strlen($methodName) > 3) {
+                $argument = $this->argumentInfoFrom($method);
+                if ($argument->isInternal()) {
+                    // не добавляем в общий контейнер внутренние аргументы
+                    continue;
+                }
+                $serviceId = substr($methodName, 3);
+                if (!in_array($serviceId, $excluded, true)) {
+                    $this->list[$serviceId] = $argument;
+                }
+                if (!$argument->isDecorator()) {
+                    $this->original[$serviceId] = $serviceId . 'Original';
+                } else {
+                    $decorates = $argument->getDecoratorArguments();
+                    if ($serviceId !== $decorates) {
+                        $excluded[] = $decorates;
+                        unset($this->list[$decorates]);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @param \ReflectionMethod $method
+     * @return Argument
+     */
+    private function argumentInfoFrom(\ReflectionMethod $method): Argument
+    {
+        static $modifiers = [
+            'internal',
+            'decorates',
+            'private'
+        ];
+        $docs = explode("\n", $method->getDocComment());
+        array_walk($docs, function (&$key) {
+            $key = trim($key, "* \t\r");
+        });
+
+        $result = [];
+        foreach ($docs as $key) {
+
+            if ('@' !== substr($key, 0, 1)) {
+                continue;
+            }
+            list($modifier, $arguments) = explode(' ', ltrim($key, '@') . ' ', 2);
+
+            if (in_array($modifier, $modifiers, true)) {
+
+                if (isset($result[$modifier])) {
+                    throw new \LogicException(sprintf(
+                        'Modifier "%s" of service "%s" cannot be duplicated.',
+                        $modifier,
+                        substr($method->getShortName(), 3)
+                    ));
+                }
+
+                $result[$modifier] = trim($arguments);
+            }
+        }
+
+        return new Argument(
+            (string)$method->getReturnType(),
+            $result
+        );
     }
 
     /**
@@ -72,10 +161,28 @@ class Container implements IterableContainerInterface
             // fast getter
             return $this->instances[$id];
         }
-        if (!$this->has($id)) {
+        if ($notFound = !$this->has($id)) {
+            if (!class_exists($id)) {
+                throw new NotFoundException('Not found "' . $id . '" in Di container.');
+            }
+            $instance = $id;
+        } else {
+            $instance = $this->containers[$this->ids[$id]]->get($id);
+        }
+        if (is_string($instance) && class_exists($instance)) {
+            $class = new \ReflectionClass($instance);
+            $constructor = $class->getConstructor();
+            $parameters = $constructor->getParameters();
+            $arguments = [];
+            foreach ($parameters as $parameter) {
+                $argType = $parameter->getClass()->getName();
+                $arguments[] = $this->get($argType);
+            }
+            $instance = new $instance(...$arguments);
+        } elseif ($notFound) {
             throw new NotFoundException('Not found "' . $id . '" in Di container.');
         }
-        return $this->instances[$id] = $this->containers[$this->ids[$id]]->get($id);
+        return $this->instances[$id] = $instance;
     }
 
     /**
@@ -100,6 +207,26 @@ class Container implements IterableContainerInterface
             return $this->get(substr($name, 3));
         }
         throw new \RuntimeException('Unknown using magic method "' . $name . '".');
+    }
+
+    public function addDependencies(array $dependencies): self
+    {
+        foreach ($dependencies as $dependency) {
+            $this->addDependency($dependency);
+        }
+
+        return $this;
+    }
+
+    public function addDependency($dependency, string $alias = null): void
+    {
+        if (!is_object($dependency)) {
+            throw new \InvalidArgumentException('Invalid dependency type.');
+        }
+        $this->instances[get_class($dependency)] = $dependency;
+        if (null !== $alias) {
+            $this->instances[$alias] = $dependency;
+        }
     }
 
     /**
