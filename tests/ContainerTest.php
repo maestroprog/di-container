@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Maestroprog\Container\Tests;
 
+use Maestroprog\Container\Container;
+use Maestroprog\Container\ContainerException;
+use Maestroprog\Container\HasContainerLinkInterface;
 use Maestroprog\Container\HasPriorityInterface;
 use Maestroprog\Container\NotFoundException;
+use Maestroprog\Container\WithContainerLinkTrait;
 use PHPUnit\Framework\TestCase;
-use Maestroprog\Container\AbstractBasicContainer;
-use Maestroprog\Container\Container;
 
 /**
  * @covers \Maestroprog\Container\Argument
@@ -16,7 +18,8 @@ use Maestroprog\Container\Container;
  * @covers \Maestroprog\Container\IterableContainerInterface
  * @covers \Maestroprog\Container\NotFoundException
  * @covers \Maestroprog\Container\Container
- * @covers \Maestroprog\Container\AbstractBasicContainer
+ * @covers \Maestroprog\Container\WithContainerLinkTrait
+ * @covers \Maestroprog\Container\ServicesExtractor
  */
 class ContainerTest extends TestCase
 {
@@ -33,7 +36,6 @@ class ContainerTest extends TestCase
     public function testContainer()
     {
         $this->container->register(new MyContainer());
-
         $this->container->get(MyService2::class);
 
         /** @var MyService2 $service2 */
@@ -43,6 +45,8 @@ class ContainerTest extends TestCase
         $service1 = $service2->getService1();
 
         $this->assertEquals($service1, $this->container->get(MyService1::class));
+        $this->assertEquals($this->container->get(MyService1::class), $this->container->get(MyService1::class));
+        $this->assertEquals($service1, $this->container->get('MyService1'));
     }
 
     public function testInvalidOverrideContainer()
@@ -62,8 +66,10 @@ class ContainerTest extends TestCase
 
     public function testInvalidTypesOverrideContainer()
     {
-        $container2 = new class extends AbstractBasicContainer
+        $container2 = new class implements HasContainerLinkInterface
         {
+            use WithContainerLinkTrait;
+
             public function getMyService2(): MyService1
             {
                 return new MyService1(false);
@@ -82,8 +88,10 @@ class ContainerTest extends TestCase
 
     public function testServiceWithCommonInterface()
     {
-        $container2 = new class extends AbstractBasicContainer implements HasPriorityInterface
+        $container2 = new class implements HasPriorityInterface, HasContainerLinkInterface
         {
+            use WithContainerLinkTrait;
+
             public function getMyService1(): MyService1
             {
                 return new MyService1(true);
@@ -101,8 +109,10 @@ class ContainerTest extends TestCase
 
     public function testLowPriorityContainer()
     {
-        $container2 = new class extends AbstractBasicContainer implements HasPriorityInterface
+        $container2 = new class implements HasPriorityInterface, HasContainerLinkInterface
         {
+            use WithContainerLinkTrait;
+
             public function getMyService1(): MyService1
             {
                 return new MyService1(true);
@@ -122,15 +132,17 @@ class ContainerTest extends TestCase
     {
         $this->expectException(\RuntimeException::class);
         $container = new MyContainer();
-        $container->get('don\'t know');
+        $this->container->register($container);
+        $this->container->get('don\'t know');
     }
 
     public function testUsingGlobalContainer()
     {
-        $this->expectException(NotFoundException::class);
+        $this->assertTrue(true);
+        /*$this->expectException(NotFoundException::class);
         $container = new MyContainer();
         $this->container->register($container);
-        $container->get('don\'t know');
+        $this->container->get('don\'t know');*/
     }
 
     public function testContainerMagicCall()
@@ -142,15 +154,17 @@ class ContainerTest extends TestCase
 
     public function testContainerInvalidMagicCall()
     {
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(ContainerException::class);
         $this->container->invalid();
     }
 
     public function testOriginalKeyword()
     {
-        $this->expectException(\LogicException::class);
-        $this->container->register(new class extends AbstractBasicContainer
+        $this->expectException(\InvalidArgumentException::class);
+        $this->container->register(new class implements HasContainerLinkInterface
         {
+            use WithContainerLinkTrait;
+
             public function getServiceOriginal(): int
             {
                 return 1;
@@ -167,7 +181,8 @@ class ContainerTest extends TestCase
              */
             public function getMyService1Decorator(): MyService1
             {
-                return new class($this->get('MyService1Original')) extends MyService1
+                $container = $this->container->get('MyService1Original');
+                return new class($container) extends MyService1
                 {
                     private $decorates;
 
@@ -191,14 +206,16 @@ class ContainerTest extends TestCase
     public function testAdvancedDecoration1()
     {
         $this->container->register(new MyContainer());
-        $this->container->register(new class extends AbstractBasicContainer
+        $this->container->register(new class implements HasContainerLinkInterface
         {
+            use WithContainerLinkTrait;
+
             /**
              * @decorates MyService1
              */
             public function getMyService1(): MyService1
             {
-                return new class($this->get('MyService1Original')) extends MyService1
+                return new class($this->container->get('MyService1Original')) extends MyService1
                 {
                     private $decorates;
 
@@ -221,14 +238,16 @@ class ContainerTest extends TestCase
 
     public function testAdvancedDecoration2()
     {
-        $this->container->register(new class extends AbstractBasicContainer
+        $this->container->register(new class implements HasContainerLinkInterface
         {
+            use WithContainerLinkTrait;
+
             /**
              * @decorates MyService1
              */
             public function getMyService1(): MyService1
             {
-                return new class($this->get('MyService1Original')) extends MyService1
+                return new class($this->container->get('MyService1Original')) extends MyService1
                 {
                     private $decorates;
 
@@ -291,8 +310,10 @@ class MyService2 implements MyServiceInterface
     }
 }
 
-class MyContainer extends AbstractBasicContainer
+class MyContainer implements HasContainerLinkInterface
 {
+    use WithContainerLinkTrait;
+
     public function getMyService1(): MyService1
     {
         return new MyService1(true);
@@ -300,6 +321,6 @@ class MyContainer extends AbstractBasicContainer
 
     public function getMyService2(): MyService2
     {
-        return new MyService2($this->get(MyService1::class));
+        return new MyService2($this->container->get(MyService1::class));
     }
 }

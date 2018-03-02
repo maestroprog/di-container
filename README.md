@@ -9,7 +9,7 @@ A simple realisation of dependency injection container.
 
 ## Requirements
 
- * \>=PHP7.0
+ * \>=PHP7.1
 
 ## Installing
 

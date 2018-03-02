@@ -14,20 +14,15 @@ require_once __DIR__ . '/SampleOverrideContainer.php';
 require_once __DIR__ . '/SampleService.php';
 require_once __DIR__ . '/SampleServiceUsingFileCache.php';
 
-$container = Container::instance();
+$time = microtime(true);
+$container = new Container();
 $container->register(new SampleOverrideContainer());
 $container->register(new SampleContainer());
 
 var_dump($container->get(\TestNamespace\SampleServiceUsingFileCache::class));
-
-//$compiler = new ContainerCompiler($container);
-//$compiler->compile(__DIR__ . '/container.php');
-
-//require_once __DIR__ . '/container.php';
-//$container = new CompiledContainer($container);
-
-$service = $container->get(\TestNamespace\SampleService::class);
-
+$service = $container->get('MyCustomSampleService');
+var_dump($service);
 var_dump($service->getSample1());
 var_dump($container->getSampleService()->getSample1());
 var_dump($container->get('SampleServiceAutoWire'));
+var_dump(microtime(true) - $time);
