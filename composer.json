@@ -13,11 +13,11 @@
   ],
   "autoload": {
     "psr-4": {
-      "Maestroprog\\Container\\": "src"
+      "Maestroprog\\Container\\": "src/"
     }
   },
   "require": {
-    "php": ">=7.0.0",
+    "php": ">=7.1.0",
     "psr/container": "^1.0"
   },
   "require-dev": {

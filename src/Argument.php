@@ -1,20 +1,30 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Maestroprog\Container;
 
 class Argument
 {
+    private $methodName;
     private $returnType;
     private $modifiers;
 
     /**
+     * @param string $methodName
      * @param string $returnType
      * @param string[] $modifiers
      */
-    public function __construct(string $returnType, array $modifiers)
+    public function __construct(string $methodName, string $returnType, array $modifiers)
     {
+        $this->methodName = $methodName;
         $this->returnType = $returnType;
         $this->modifiers = $modifiers;
+    }
+
+    public function getMethodName(): string
+    {
+        return $this->methodName;
     }
 
     public function getReturnType(): string
@@ -32,7 +42,7 @@ class Argument
         return array_key_exists('decorates', $this->modifiers);
     }
 
-    public function getDecoratorArguments(): string
+    public function getDecoratedService(): string
     {
         return $this->getArgumentsForModifier('decorates');
     }
@@ -42,7 +52,7 @@ class Argument
         return $this->modifiers[$key] ?? '';
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->returnType;
     }
